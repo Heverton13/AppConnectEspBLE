@@ -11,7 +11,7 @@ import com.example.appconnectespble.TestBLE
 import com.example.appconnectespble.ViewHolder
 
 
-class LeDeviceListAdapter() : BaseAdapter() {
+class LeDeviceListAdapter(var c: Context) : BaseAdapter() {
 
     val mLeDevices: ArrayList<BluetoothDevice>
     val mInflator: LayoutInflater? = null
@@ -52,10 +52,10 @@ class LeDeviceListAdapter() : BaseAdapter() {
         val viewHolder: ViewHolder
         // General ListView optimization code.
         if (view == null) {
-            view = mInflator!!.inflate(com.example.appconnectespble.R.layout.listitem_device, null)
+            view = LayoutInflater.from(c).inflate(R.layout.listitem_device, viewGroup, false)
             viewHolder = ViewHolder(view)
-            viewHolder.textViewAdress = view!!.findViewById(R.id.deviceAddress)
-            viewHolder.textViewName = view!!.findViewById(R.id.deviceName)
+            viewHolder.textViewAdress = view.findViewById(R.id.deviceAddress)
+            viewHolder.textViewName = view.findViewById(R.id.deviceName)
             view!!.setTag(viewHolder)
         } else {
             viewHolder = view!!.getTag() as ViewHolder

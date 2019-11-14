@@ -41,6 +41,7 @@ import android.view.View
 import android.widget.Toast
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
+import androidx.fragment.app.Fragment
 import kotlinx.android.synthetic.main.activity_main.*
 
 
@@ -95,7 +96,6 @@ class MainActivity : AppCompatActivity() {
             scanLeDevice(true)
         }
     }
-
 
     fun scanLeDevice(enable : Boolean){
         if (enable) {
@@ -197,7 +197,6 @@ class MainActivity : AppCompatActivity() {
             startScan()
             return
         }
-
         //If the app has not the permission then asking for the permission
     }
 
@@ -206,9 +205,10 @@ class MainActivity : AppCompatActivity() {
         var result:Int = ContextCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION);
 
         //If permission is granted returning true
-        if (result == PackageManager.PERMISSION_GRANTED)
+        if (result == PackageManager.PERMISSION_GRANTED) {
+            Log.i("INFO", "Permitiu")
             return true;
-
+        }
         //If permission is not granted returning false
         return false;
     }

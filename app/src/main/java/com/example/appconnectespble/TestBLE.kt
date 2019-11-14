@@ -1,6 +1,7 @@
 package com.example.appconnectespble
 
 import LeDeviceListAdapter
+import android.Manifest
 import android.annotation.TargetApi
 import android.app.ListActivity
 import android.bluetooth.BluetoothAdapter
@@ -11,14 +12,17 @@ import android.content.pm.PackageManager
 import android.os.Bundle
 import android.os.Handler
 import android.widget.Toast
-import android.view.InputDevice.getDevice
-import android.bluetooth.BluetoothDevice
-import android.text.method.TextKeyListener.clear
 import android.app.Activity
+import android.app.AlertDialog
+import android.bluetooth.le.BluetoothLeScanner
+import android.bluetooth.le.ScanFilter
+import android.bluetooth.le.ScanSettings
+import android.content.DialogInterface
+import android.os.Build
+import android.util.Log
 import android.view.Menu
 import android.view.MenuItem
-
-
+import androidx.core.content.ContextCompat
 
 @TargetApi(21)
 class TestBLE : ListActivity()  {
@@ -26,11 +30,14 @@ class TestBLE : ListActivity()  {
     var REQUEST_ENABLE_BT = 1
     private val SCAN_PERIOD: Long = 10000
     private var mLeDeviceListAdapter: LeDeviceListAdapter? = null
-    private val mBluetoothAdapter: BluetoothAdapter? = null
+    private var mLEScanner:  BluetoothLeScanner? = null
     private var mScanning: Boolean = false
     private var mHandler: Handler? = null
+    private var settings: ScanSettings? = null
+    private var filters: List<ScanFilter>? = null
+    var REQUEST_CODE_ASK_MULTIPLE_PERMISSIONS = 200
 
-    private val bluetoothAdapter: BluetoothAdapter? by lazy(LazyThreadSafetyMode.NONE) {
+    val mBluetoothAdapter: BluetoothAdapter? by lazy(LazyThreadSafetyMode.NONE) {
         val bluetoothManager = getSystemService(Context.BLUETOOTH_SERVICE) as BluetoothManager
         bluetoothManager.adapter
     }
@@ -44,16 +51,10 @@ class TestBLE : ListActivity()  {
         getActionBar()?.setTitle(R.string.title_devices)
         mHandler = Handler()
 
-        android.R.id.list
 
-        bluetoothAdapter?.takeIf { it.isDisabled }?.apply {
+        mBluetoothAdapter?.takeIf { it.isDisabled }?.apply {
             val enableBtIntent = Intent(BluetoothAdapter.ACTION_REQUEST_ENABLE)
             startActivityForResult(enableBtIntent, REQUEST_ENABLE_BT)
-        }
-
-        if (!getPackageManager().hasSystemFeature(PackageManager.FEATURE_BLUETOOTH_LE)) {
-            Toast.makeText(this, R.string.ble_not_supported, Toast.LENGTH_SHORT).show()
-            finish()
         }
 
 
@@ -62,6 +63,13 @@ class TestBLE : ListActivity()  {
             finish()
             return
         }
+
+        if (Build.VERSION.SDK_INT >= 23) {
+            // Marshmallow+ Permission APIs
+            fuckMarshMallow()
+        }
+
+        checkLocationPermission()
 
 
     }
@@ -129,7 +137,7 @@ class TestBLE : ListActivity()  {
             }
         }
         // Initializes list view adapter.
-        mLeDeviceListAdapter = LeDeviceListAdapter()
+        mLeDeviceListAdapter = LeDeviceListAdapter(this)
         listAdapter = mLeDeviceListAdapter
         scanLeDevice(true)
     }
@@ -148,5 +156,155 @@ class TestBLE : ListActivity()  {
         scanLeDevice(false)
         mLeDeviceListAdapter!!.clear()
     }
+
+    fun checkLocationPermission() {
+        Log.i("INFO","Entro em check")
+        if(isReadStorageAllowed()){
+            //If permission is already having then showing the toast
+            Toast.makeText(this,"You already have the permission",Toast.LENGTH_LONG).show()
+            //Existing the method with return
+            startScan()
+            return
+        }
+        //If the app has not the permission then asking for the permission
+    }
+
+    fun isReadStorageAllowed():Boolean {
+        //Getting the permission status
+        Log.i("INFO","Entro Read")
+        var result:Int = ContextCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION)
+        var result2:Int = ContextCompat.checkSelfPermission(this, Manifest.permission.ACCESS_COARSE_LOCATION)
+
+        //If permission is granted returning true
+        if (result == PackageManager.PERMISSION_GRANTED) {
+            Log.i("INFO", "Permitiu")
+            return true
+        }
+        //If permission is not granted returning false
+        return false
+    }
+
+    fun startScan(){
+
+        if (mBluetoothAdapter == null || !mBluetoothAdapter!!.isEnabled()) {
+            var enableBtIntent: Intent = Intent(BluetoothAdapter.ACTION_REQUEST_ENABLE)
+            startActivityForResult(enableBtIntent, REQUEST_ENABLE_BT)
+        } else {
+            if (Build.VERSION.SDK_INT >= 21) {
+                mLEScanner = mBluetoothAdapter!!.bluetoothLeScanner
+                settings = ScanSettings.Builder()
+                    .setScanMode(ScanSettings.SCAN_MODE_LOW_LATENCY)
+                    .build()
+                filters = ArrayList<ScanFilter>()
+            }
+            Log.i("BLE","$filters")
+            scanLeDevice(true)
+        }
+    }
+
+    override fun onRequestPermissionsResult(
+        requestCode: Int,
+        permissions: Array<String>,
+        grantResults: IntArray
+    ) {
+        when (requestCode) {
+            REQUEST_CODE_ASK_MULTIPLE_PERMISSIONS -> {
+                val perms = HashMap<String, Int>()
+                // Initial
+                perms[Manifest.permission.ACCESS_FINE_LOCATION] = PackageManager.PERMISSION_GRANTED
+
+                // Fill with results
+                for (i in permissions.indices)
+                    perms[permissions[i]] = grantResults[i]
+
+                // Check for ACCESS_FINE_LOCATION
+                if (perms[Manifest.permission.ACCESS_FINE_LOCATION] == PackageManager.PERMISSION_GRANTED) {
+                    // All Permissions Granted
+
+                    // Permission Denied
+                    Toast.makeText(
+                        this@TestBLE,
+                        "All Permission GRANTED !! Thank You :)",
+                        Toast.LENGTH_SHORT
+                    )
+                        .show()
+                } else {
+                    // Permission Denied
+                    Toast.makeText(
+                        this@TestBLE,
+                        "One or More Permissions are DENIED Exiting App :(",
+                        Toast.LENGTH_SHORT
+                    )
+                        .show()
+
+                    finish()
+                }
+            }
+            else -> super.onRequestPermissionsResult(requestCode, permissions, grantResults)
+        }
+    }
+
+    @TargetApi(Build.VERSION_CODES.M)
+    private fun fuckMarshMallow() {
+        val permissionsNeeded = ArrayList<String>()
+
+        val permissionsList = ArrayList<String>()
+        if (!addPermission(permissionsList, Manifest.permission.ACCESS_FINE_LOCATION))
+            permissionsNeeded.add("Show Location")
+
+        if (permissionsList.size > 0) {
+            if (permissionsNeeded.size > 0) {
+
+                // Need Rationale
+                var message = "App need access to " + permissionsNeeded[0]
+
+                for (i in 1 until permissionsNeeded.size)
+                    message = message + ", " + permissionsNeeded[i]
+
+                showMessageOKCancel(message,
+                    DialogInterface.OnClickListener { dialog, which ->
+                        requestPermissions(
+                            permissionsList.toTypedArray(),
+                            REQUEST_CODE_ASK_MULTIPLE_PERMISSIONS
+                        )
+                    })
+                return
+            }
+            requestPermissions(
+                permissionsList.toTypedArray(),
+                REQUEST_CODE_ASK_MULTIPLE_PERMISSIONS
+            )
+            return
+        }
+
+        Toast.makeText(
+            this@TestBLE,
+            "No new Permission Required- Launching App .You are Awesome!!",
+            Toast.LENGTH_SHORT
+        )
+            .show()
+    }
+
+    @TargetApi(Build.VERSION_CODES.M)
+    private fun addPermission(permissionsList: MutableList<String>, permission: String): Boolean {
+
+        if (checkSelfPermission(permission) != PackageManager.PERMISSION_GRANTED) {
+            permissionsList.add(permission)
+            // Check for Rationale Option
+            if (!shouldShowRequestPermissionRationale(permission))
+                return false
+        }
+        return true
+    }
+
+    private fun showMessageOKCancel(message: String, okListener: DialogInterface.OnClickListener) {
+        AlertDialog.Builder(this@TestBLE)
+            .setMessage(message)
+            .setPositiveButton("OK", okListener)
+            .setNegativeButton("Cancel", null)
+            .create()
+            .show()
+    }
+
 
 }
