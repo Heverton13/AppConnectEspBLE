@@ -14,6 +14,7 @@ import android.os.Handler
 import android.widget.Toast
 import android.app.Activity
 import android.app.AlertDialog
+import android.bluetooth.BluetoothDevice
 import android.bluetooth.le.BluetoothLeScanner
 import android.bluetooth.le.ScanFilter
 import android.bluetooth.le.ScanSettings
@@ -22,10 +23,12 @@ import android.os.Build
 import android.util.Log
 import android.view.Menu
 import android.view.MenuItem
+import android.view.View
+import android.widget.ListView
 import androidx.core.content.ContextCompat
 
 @TargetApi(21)
-class TestBLE : ListActivity()  {
+class TestBLE : ListActivity(){
 
     var REQUEST_ENABLE_BT = 1
     private val SCAN_PERIOD: Long = 10000
@@ -48,14 +51,7 @@ class TestBLE : ListActivity()  {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_test_ble)
-        getActionBar()?.setTitle(R.string.title_devices)
         mHandler = Handler()
-
-
-        mBluetoothAdapter?.takeIf { it.isDisabled }?.apply {
-            val enableBtIntent = Intent(BluetoothAdapter.ACTION_REQUEST_ENABLE)
-            startActivityForResult(enableBtIntent, REQUEST_ENABLE_BT)
-        }
 
 
         if (mBluetoothAdapter == null) {
@@ -64,13 +60,12 @@ class TestBLE : ListActivity()  {
             return
         }
 
+        checkLocationPermission()
+
         if (Build.VERSION.SDK_INT >= 23) {
             // Marshmallow+ Permission APIs
             fuckMarshMallow()
         }
-
-        checkLocationPermission()
-
 
     }
 
@@ -97,7 +92,21 @@ class TestBLE : ListActivity()  {
                 mLeDeviceListAdapter!!.addDevice(device)
                 mLeDeviceListAdapter!!.notifyDataSetChanged()
             }
+
         }
+
+    override fun onListItemClick(l: ListView?, v: View?, position: Int, id: Long) {
+        val device: BluetoothDevice = mLeDeviceListAdapter!!.getDevice(position)
+        if (device == null) return
+        var intent:Intent =  Intent(this, ControlBleActivity::class.java)
+        intent.putExtra(ControlBleActivity.EXTRAS_DEVICE_NAME, device.name)
+        intent.putExtra(ControlBleActivity.EXTRAS_DEVICE_NAME, device.address)
+        if (mScanning) {
+            mBluetoothAdapter!!.stopLeScan(mLeScanCallback)
+            mScanning = false
+        }
+        startActivity(intent)
+    }
 
     override fun onCreateOptionsMenu(menu: Menu): Boolean {
         menuInflater.inflate(R.menu.main, menu)
@@ -109,8 +118,7 @@ class TestBLE : ListActivity()  {
             menu.findItem(R.id.menu_stop).setVisible(true)
             menu.findItem(R.id.menu_scan).setVisible(false)
             menu.findItem(R.id.menu_refresh).setActionView(
-                R.layout.actionbar_indeterminate_progress
-            )
+                R.layout.actionbar_indeterminate_progress)
         }
         return true
     }
@@ -130,11 +138,9 @@ class TestBLE : ListActivity()  {
         super.onResume()
         // Ensures Bluetooth is enabled on the device.  If Bluetooth is not currently enabled,
         // fire an intent to display a dialog asking the user to grant permission to enable it.
-        if (!mBluetoothAdapter?.isEnabled()!!) {
-            if (!mBluetoothAdapter?.isEnabled()!!) {
+        if (!mBluetoothAdapter!!.isEnabled()!!) {
                 val enableBtIntent = Intent(BluetoothAdapter.ACTION_REQUEST_ENABLE)
                 startActivityForResult(enableBtIntent, REQUEST_ENABLE_BT)
-            }
         }
         // Initializes list view adapter.
         mLeDeviceListAdapter = LeDeviceListAdapter(this)
@@ -186,10 +192,6 @@ class TestBLE : ListActivity()  {
 
     fun startScan(){
 
-        if (mBluetoothAdapter == null || !mBluetoothAdapter!!.isEnabled()) {
-            var enableBtIntent: Intent = Intent(BluetoothAdapter.ACTION_REQUEST_ENABLE)
-            startActivityForResult(enableBtIntent, REQUEST_ENABLE_BT)
-        } else {
             if (Build.VERSION.SDK_INT >= 21) {
                 mLEScanner = mBluetoothAdapter!!.bluetoothLeScanner
                 settings = ScanSettings.Builder()
@@ -199,7 +201,6 @@ class TestBLE : ListActivity()  {
             }
             Log.i("BLE","$filters")
             scanLeDevice(true)
-        }
     }
 
     override fun onRequestPermissionsResult(

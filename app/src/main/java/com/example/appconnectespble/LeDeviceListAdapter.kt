@@ -5,6 +5,7 @@ import android.view.LayoutInflater
 import android.view.ViewGroup
 import android.view.View
 import android.widget.BaseAdapter
+import android.widget.BaseExpandableListAdapter
 import com.example.appconnectespble.MainActivity
 import com.example.appconnectespble.R
 import com.example.appconnectespble.TestBLE
@@ -18,6 +19,7 @@ class LeDeviceListAdapter(var c: Context) : BaseAdapter() {
 
     init {
         mLeDevices = ArrayList()
+
     }
 
     fun addDevice(device: BluetoothDevice) {
@@ -53,6 +55,7 @@ class LeDeviceListAdapter(var c: Context) : BaseAdapter() {
         // General ListView optimization code.
         if (view == null) {
             view = LayoutInflater.from(c).inflate(R.layout.listitem_device, viewGroup, false)
+            //view = mInflator!!.inflate(R.layout.listitem_device, null)
             viewHolder = ViewHolder(view)
             viewHolder.textViewAdress = view.findViewById(R.id.deviceAddress)
             viewHolder.textViewName = view.findViewById(R.id.deviceName)
