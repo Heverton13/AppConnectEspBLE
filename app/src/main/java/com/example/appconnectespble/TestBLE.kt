@@ -28,12 +28,12 @@ import android.widget.ListView
 import androidx.core.content.ContextCompat
 
 @TargetApi(21)
-class TestBLE : ListActivity(){
+class TestBLE : ListActivity() {
 
     var REQUEST_ENABLE_BT = 1
     private val SCAN_PERIOD: Long = 10000
     private var mLeDeviceListAdapter: LeDeviceListAdapter? = null
-    private var mLEScanner:  BluetoothLeScanner? = null
+    private var mLEScanner: BluetoothLeScanner? = null
     private var mScanning: Boolean = false
     private var mHandler: Handler? = null
     private var settings: ScanSettings? = null
@@ -98,9 +98,9 @@ class TestBLE : ListActivity(){
     override fun onListItemClick(l: ListView?, v: View?, position: Int, id: Long) {
         val device: BluetoothDevice = mLeDeviceListAdapter!!.getDevice(position)
         if (device == null) return
-        var intent:Intent =  Intent(this, ControlBleActivity::class.java)
+        var intent = Intent(this, ControlBleActivity::class.java)
         intent.putExtra(ControlBleActivity.EXTRAS_DEVICE_NAME, device.name)
-        intent.putExtra(ControlBleActivity.EXTRAS_DEVICE_NAME, device.address)
+        intent.putExtra(ControlBleActivity.EXTRAS_DEVICE_ADDRESS, device.address)
         if (mScanning) {
             mBluetoothAdapter!!.stopLeScan(mLeScanCallback)
             mScanning = false
@@ -118,7 +118,8 @@ class TestBLE : ListActivity(){
             menu.findItem(R.id.menu_stop).setVisible(true)
             menu.findItem(R.id.menu_scan).setVisible(false)
             menu.findItem(R.id.menu_refresh).setActionView(
-                R.layout.actionbar_indeterminate_progress)
+                R.layout.actionbar_indeterminate_progress
+            )
         }
         return true
     }
@@ -139,8 +140,8 @@ class TestBLE : ListActivity(){
         // Ensures Bluetooth is enabled on the device.  If Bluetooth is not currently enabled,
         // fire an intent to display a dialog asking the user to grant permission to enable it.
         if (!mBluetoothAdapter!!.isEnabled()!!) {
-                val enableBtIntent = Intent(BluetoothAdapter.ACTION_REQUEST_ENABLE)
-                startActivityForResult(enableBtIntent, REQUEST_ENABLE_BT)
+            val enableBtIntent = Intent(BluetoothAdapter.ACTION_REQUEST_ENABLE)
+            startActivityForResult(enableBtIntent, REQUEST_ENABLE_BT)
         }
         // Initializes list view adapter.
         mLeDeviceListAdapter = LeDeviceListAdapter(this)
@@ -164,10 +165,10 @@ class TestBLE : ListActivity(){
     }
 
     fun checkLocationPermission() {
-        Log.i("INFO","Entro em check")
-        if(isReadStorageAllowed()){
+        Log.i("INFO", "Entro em check")
+        if (isReadStorageAllowed()) {
             //If permission is already having then showing the toast
-            Toast.makeText(this,"You already have the permission",Toast.LENGTH_LONG).show()
+            Toast.makeText(this, "You already have the permission", Toast.LENGTH_LONG).show()
             //Existing the method with return
             startScan()
             return
@@ -175,11 +176,13 @@ class TestBLE : ListActivity(){
         //If the app has not the permission then asking for the permission
     }
 
-    fun isReadStorageAllowed():Boolean {
+    fun isReadStorageAllowed(): Boolean {
         //Getting the permission status
-        Log.i("INFO","Entro Read")
-        var result:Int = ContextCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION)
-        var result2:Int = ContextCompat.checkSelfPermission(this, Manifest.permission.ACCESS_COARSE_LOCATION)
+        Log.i("INFO", "Entro Read")
+        var result: Int =
+            ContextCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION)
+        var result2: Int =
+            ContextCompat.checkSelfPermission(this, Manifest.permission.ACCESS_COARSE_LOCATION)
 
         //If permission is granted returning true
         if (result == PackageManager.PERMISSION_GRANTED) {
@@ -190,17 +193,17 @@ class TestBLE : ListActivity(){
         return false
     }
 
-    fun startScan(){
+    fun startScan() {
 
-            if (Build.VERSION.SDK_INT >= 21) {
-                mLEScanner = mBluetoothAdapter!!.bluetoothLeScanner
-                settings = ScanSettings.Builder()
-                    .setScanMode(ScanSettings.SCAN_MODE_LOW_LATENCY)
-                    .build()
-                filters = ArrayList<ScanFilter>()
-            }
-            Log.i("BLE","$filters")
-            scanLeDevice(true)
+        if (Build.VERSION.SDK_INT >= 21) {
+            mLEScanner = mBluetoothAdapter!!.bluetoothLeScanner
+            settings = ScanSettings.Builder()
+                .setScanMode(ScanSettings.SCAN_MODE_LOW_LATENCY)
+                .build()
+            filters = ArrayList<ScanFilter>()
+        }
+        Log.i("BLE", "$filters")
+        scanLeDevice(true)
     }
 
     override fun onRequestPermissionsResult(

@@ -202,6 +202,7 @@ class ControlBleActivity : AppCompatActivity() {
 
         when (item.getItemId()) {
             R.id.menu_connect -> {
+                Log.i(">>>>>>>>>>>>>>", "$mBluetoothLeService")
                 mBluetoothLeService!!.connect(mDeviceAddress)
                 return true
             }
