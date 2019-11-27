@@ -1,15 +1,10 @@
 package com.example.appconnectespble
 
-import ACTION_DATA_AVAILABLE
-import ACTION_GATT_CONNECTED
-import ACTION_GATT_DISCONNECTED
-import ACTION_GATT_SERVICES_DISCOVERED
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
 import android.os.IBinder
 import android.util.Log
 import android.bluetooth.BluetoothGattCharacteristic
-import BluetoothLeService
 import android.annotation.TargetApi
 import android.app.Activity
 import android.bluetooth.BluetoothGattService
@@ -23,10 +18,14 @@ import android.view.MenuItem
 import android.content.IntentFilter
 import kotlinx.android.synthetic.main.activity_control_ble.*
 import android.content.Intent
+import com.example.appconnectespble.BluetoothLeService.Companion.ACTION_DATA_AVAILABLE
+import com.example.appconnectespble.BluetoothLeService.Companion.ACTION_GATT_CONNECTED
+import com.example.appconnectespble.BluetoothLeService.Companion.ACTION_GATT_DISCONNECTED
+import com.example.appconnectespble.BluetoothLeService.Companion.ACTION_GATT_SERVICES_DISCOVERED
 
 class ControlBleActivity : AppCompatActivity() {
 
-    private val TAG = TestBLE::class.java!!.getSimpleName()
+    private val TAG = TestBLE::class.java!!.simpleName
     companion object {
         val EXTRAS_DEVICE_NAME = "DEVICE_NAME"
         val EXTRAS_DEVICE_ADDRESS = "DEVICE_ADDRESS"
@@ -131,9 +130,11 @@ class ControlBleActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_control_ble)
 
-        val intent:Intent = getIntent()
+        val intent:Intent = intent
         mDeviceName = intent.getStringExtra(EXTRAS_DEVICE_NAME)
         mDeviceAddress = intent.getStringExtra(EXTRAS_DEVICE_ADDRESS)
+
+        Log.i("TANIRO", mDeviceAddress)
 
         address.text = mDeviceAddress
         //data.text = findViewById<TextView>(R.id.data_value)
@@ -148,7 +149,8 @@ class ControlBleActivity : AppCompatActivity() {
     }
 
     private fun updateConnectionState(resourceId: Int) {
-        runOnUiThread { mConnectionState!!.setText(resourceId) }
+        Log.i("TANIRO33", mConnectionState.toString())
+       // runOnUiThread { mConnectionState!!.setText(resourceId) }
     }
 
     private fun displayData(data: String?) {
@@ -200,7 +202,7 @@ class ControlBleActivity : AppCompatActivity() {
         Log.i("Service","$mBluetoothLeService")
         Log.i("Address","$mDeviceAddress")
 
-        when (item.getItemId()) {
+        when (item.itemId) {
             R.id.menu_connect -> {
                 Log.i(">>>>>>>>>>>>>>", "$mBluetoothLeService")
                 mBluetoothLeService!!.connect(mDeviceAddress)
@@ -220,10 +222,10 @@ class ControlBleActivity : AppCompatActivity() {
 
     private fun makeGattUpdateIntentFilter(): IntentFilter {
         val intentFilter = IntentFilter()
-        intentFilter.addAction(BluetoothLeService.ACTION_GATT_CONNECTED)
-        intentFilter.addAction(BluetoothLeService.ACTION_GATT_DISCONNECTED)
-        intentFilter.addAction(BluetoothLeService.ACTION_GATT_SERVICES_DISCOVERED)
-        intentFilter.addAction(BluetoothLeService.ACTION_DATA_AVAILABLE)
+        intentFilter.addAction(ACTION_GATT_CONNECTED)
+        intentFilter.addAction(ACTION_GATT_DISCONNECTED)
+        intentFilter.addAction(ACTION_GATT_SERVICES_DISCOVERED)
+        intentFilter.addAction(ACTION_DATA_AVAILABLE)
         return intentFilter
     }
 

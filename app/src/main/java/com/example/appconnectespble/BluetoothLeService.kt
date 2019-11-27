@@ -1,3 +1,5 @@
+package com.example.appconnectespble
+
 import android.annotation.TargetApi
 import android.app.Service
 import android.bluetooth.BluetoothGatt
@@ -8,7 +10,6 @@ import android.content.Intent
 import android.os.Build
 import android.os.IBinder
 import android.util.Log
-import com.example.appconnectespble.SampleGattAttributes
 import java.util.*
 import android.os.Binder
 import android.bluetooth.BluetoothAdapter
@@ -17,21 +18,22 @@ import android.content.Context
 import android.bluetooth.BluetoothGattDescriptor
 import android.bluetooth.BluetoothGattService
 
-
-private val TAG = BluetoothLeService::class.java.simpleName
-private const val STATE_DISCONNECTED = 0
-private const val STATE_CONNECTING = 1
-private const val STATE_CONNECTED = 2
-const val ACTION_GATT_CONNECTED = "com.example.bluetooth.le.ACTION_GATT_CONNECTED"
-const val ACTION_GATT_DISCONNECTED = "com.example.bluetooth.le.ACTION_GATT_DISCONNECTED"
-const val ACTION_GATT_SERVICES_DISCOVERED =
-    "com.example.bluetooth.le.ACTION_GATT_SERVICES_DISCOVERED"
-const val ACTION_DATA_AVAILABLE = "com.example.bluetooth.le.ACTION_DATA_AVAILABLE"
-const val EXTRA_DATA = "com.example.bluetooth.le.EXTRA_DATA"
-val UUID_HEART_RATE_MEASUREMENT = UUID.fromString(SampleGattAttributes.HEART_RATE_MEASUREMENT)
-
 // A service that interacts with the BLE device via the Android BLE API.
-class BluetoothLeService(private var bluetoothGatt: BluetoothGatt?) : Service() {
+class BluetoothLeService : Service() {
+
+
+    private var bluetoothGatt: BluetoothGatt? = null
+
+    val TAG = BluetoothLeService::class.java.simpleName
+    val STATE_DISCONNECTED = 0
+    val STATE_CONNECTING = 1
+    val STATE_CONNECTED = 2
+    val ACTION_GATT_CONNECTED = "com.example.bluetooth.le.ACTION_GATT_CONNECTED"
+    val ACTION_GATT_DISCONNECTED = "com.example.bluetooth.le.ACTION_GATT_DISCONNECTED"
+    val ACTION_GATT_SERVICES_DISCOVERED = "com.example.bluetooth.le.ACTION_GATT_SERVICES_DISCOVERED"
+    val ACTION_DATA_AVAILABLE = "com.example.bluetooth.le.ACTION_DATA_AVAILABLE"
+    val EXTRA_DATA = "com.example.bluetooth.le.EXTRA_DATA"
+    val UUID_HEART_RATE_MEASUREMENT = UUID.fromString(SampleGattAttributes.HEART_RATE_MEASUREMENT)
 
 
     private var connectionState = STATE_DISCONNECTED
@@ -41,9 +43,6 @@ class BluetoothLeService(private var bluetoothGatt: BluetoothGatt?) : Service() 
     private var mBluetoothDeviceAddress: String? = null
     private var mBluetoothGatt: BluetoothGatt? = null
     private var mConnectionState = STATE_DISCONNECTED
-
-    private val STATE_CONNECTING = 1
-    private val STATE_CONNECTED = 2
 
     companion object{
         var EXTRA_DATA = "com.example.bluetooth.le.EXTRA_DATA"
@@ -264,5 +263,4 @@ class BluetoothLeService(private var bluetoothGatt: BluetoothGatt?) : Service() 
     fun getSupportedGattServices(): List<BluetoothGattService>? {
         return if (mBluetoothGatt == null) null else mBluetoothGatt!!.getServices()
     }
-
 }

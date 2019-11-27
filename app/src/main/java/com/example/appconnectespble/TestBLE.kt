@@ -97,7 +97,7 @@ class TestBLE : ListActivity() {
 
     override fun onListItemClick(l: ListView?, v: View?, position: Int, id: Long) {
         val device: BluetoothDevice = mLeDeviceListAdapter!!.getDevice(position)
-        if (device == null) return
+        Log.i("TANIRO", device.toString())
         var intent = Intent(this, ControlBleActivity::class.java)
         intent.putExtra(ControlBleActivity.EXTRAS_DEVICE_NAME, device.name)
         intent.putExtra(ControlBleActivity.EXTRAS_DEVICE_ADDRESS, device.address)
