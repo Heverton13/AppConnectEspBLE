@@ -26,10 +26,7 @@ import com.example.appconnectespble.BluetoothLeService.Companion.ACTION_GATT_SER
 class ControlBleActivity : AppCompatActivity() {
 
     private val TAG = TestBLE::class.java!!.simpleName
-    companion object {
-        val EXTRAS_DEVICE_NAME = "DEVICE_NAME"
-        val EXTRAS_DEVICE_ADDRESS = "DEVICE_ADDRESS"
-    }
+
     private val mConnectionState: TextView? = null
     private val mDataField: TextView? = null
     private var mDeviceName: String? = null
@@ -46,6 +43,7 @@ class ControlBleActivity : AppCompatActivity() {
     private val mServiceConnection = object : ServiceConnection {
         override fun onServiceConnected(componentName: ComponentName, service: IBinder) {
             mBluetoothLeService = (service as BluetoothLeService.LocalBinder).service
+            Log.i("TANIRO", mBluetoothLeService.toString())
             if (!mBluetoothLeService!!.initialize()) {
                 Log.i("Erro!", "Unable to initialize Bluetooth")
                 finish()
@@ -61,26 +59,25 @@ class ControlBleActivity : AppCompatActivity() {
 
     private val gattUpdateReceiver = object : BroadcastReceiver() {
 
-        private lateinit var bluetoothLeService: BluetoothLeService
-
+        @TargetApi(Build.VERSION_CODES.JELLY_BEAN_MR2)
         override fun onReceive(context: Context, intent: Intent) {
-            val action = intent.action
-            when (action){
+            Log.i("Status", intent.action)
+            when (intent.action){
                 ACTION_GATT_CONNECTED -> {
                     connected = true
-                    updateConnectionState(R.string.connected)
+                    //updateConnectionState)
                     (context as? Activity)?.invalidateOptionsMenu()
                 }
                 ACTION_GATT_DISCONNECTED -> {
                     connected = false
-                    updateConnectionState(R.string.disconnected)
+                    //updateConnectionState(R.string.disconnected)
                     (context as? Activity)?.invalidateOptionsMenu()
                     clearUI()
                 }
                 ACTION_GATT_SERVICES_DISCOVERED -> {
                     // Show all the supported services and characteristics on the
                     // user interface.
-                    displayGattServices(bluetoothLeService.getSupportedGattServices())
+                    displayGattServices(mBluetoothLeService!!.getSupportedGattServices())
                 }
                 ACTION_DATA_AVAILABLE -> {
                     displayData(intent.getStringExtra(BluetoothLeService.EXTRA_DATA))
@@ -91,8 +88,9 @@ class ControlBleActivity : AppCompatActivity() {
 
     @TargetApi(Build.VERSION_CODES.JELLY_BEAN_MR2)
     private fun displayGattServices(gattServices: List<BluetoothGattService>?) {
+        Log.i("Display", "Entrou em display")
         if (gattServices == null) return
-        var uuid: String?
+        var uuid: String
         val unknownServiceString: String = resources.getString(R.string.unknown_service)
         val unknownCharaString: String = resources.getString(R.string.unknown_characteristic)
         val gattServiceData: MutableList<HashMap<String, String>> = mutableListOf()
@@ -144,6 +142,7 @@ class ControlBleActivity : AppCompatActivity() {
         //actionBar!!.setDisplayHomeAsUpEnabled(true)
         val gattServiceIntent = Intent(this, BluetoothLeService::class.java)
         bindService(gattServiceIntent, mServiceConnection, Context.BIND_AUTO_CREATE)
+        Log.i("TANIRO", mGattCharacteristics.toString())
 
 
     }
@@ -165,12 +164,15 @@ class ControlBleActivity : AppCompatActivity() {
     }
 
     override fun onResume() {
+        Log.i("TANIRO", "OnResume")
         super.onResume()
         registerReceiver(gattUpdateReceiver, makeGattUpdateIntentFilter())
         if (mBluetoothLeService != null) {
             val result = mBluetoothLeService!!.connect(mDeviceAddress)
             Log.d(TAG, "Connect request result=$result")
         }
+
+        Log.i("TANIRO", mBluetoothLeService.toString())
     }
 
     override fun onPause() {
@@ -220,14 +222,20 @@ class ControlBleActivity : AppCompatActivity() {
         return super.onOptionsItemSelected(item)
     }
 
-    private fun makeGattUpdateIntentFilter(): IntentFilter {
-        val intentFilter = IntentFilter()
-        intentFilter.addAction(ACTION_GATT_CONNECTED)
-        intentFilter.addAction(ACTION_GATT_DISCONNECTED)
-        intentFilter.addAction(ACTION_GATT_SERVICES_DISCOVERED)
-        intentFilter.addAction(ACTION_DATA_AVAILABLE)
-        return intentFilter
+    companion object {
+        val EXTRAS_DEVICE_NAME = "DEVICE_NAME"
+        val EXTRAS_DEVICE_ADDRESS = "DEVICE_ADDRESS"
+
+        private fun makeGattUpdateIntentFilter(): IntentFilter {
+            val intentFilter = IntentFilter()
+            intentFilter.addAction(ACTION_GATT_CONNECTED)
+            intentFilter.addAction(ACTION_GATT_DISCONNECTED)
+            intentFilter.addAction(ACTION_GATT_SERVICES_DISCOVERED)
+            intentFilter.addAction(ACTION_DATA_AVAILABLE)
+            return intentFilter
+        }
     }
+
 
 
 }

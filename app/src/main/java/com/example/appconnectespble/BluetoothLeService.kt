@@ -17,6 +17,8 @@ import android.bluetooth.BluetoothManager
 import android.content.Context
 import android.bluetooth.BluetoothGattDescriptor
 import android.bluetooth.BluetoothGattService
+import androidx.annotation.RequiresApi
+
 
 // A service that interacts with the BLE device via the Android BLE API.
 class BluetoothLeService : Service() {
@@ -69,7 +71,7 @@ class BluetoothLeService : Service() {
                     broadcastUpdate(intentAction)
                     Log.i(TAG, "Connected to GATT server.")
                     Log.i(TAG, "Attempting to start service discovery: " +
-                            bluetoothGatt?.discoverServices())
+                            mBluetoothGatt!!.discoverServices())
                 }
                 BluetoothProfile.STATE_DISCONNECTED -> {
                     intentAction = ACTION_GATT_DISCONNECTED
@@ -84,7 +86,7 @@ class BluetoothLeService : Service() {
         override fun onServicesDiscovered(gatt: BluetoothGatt, status: Int) {
             when (status) {
                 BluetoothGatt.GATT_SUCCESS -> broadcastUpdate(ACTION_GATT_SERVICES_DISCOVERED)
-                else -> Log.w(TAG, "onServicesDiscovered received: $status")
+                else -> Log.i("Puto", "onServicesDiscovered received: $status")
             }
         }
 
@@ -116,18 +118,18 @@ class BluetoothLeService : Service() {
         when (characteristic.uuid) {
             UUID_HEART_RATE_MEASUREMENT -> {
                 val flag = characteristic.properties
-                val format = when (flag and 0x01) {
-                    0x01 -> {
-                        Log.d(TAG, "Heart rate format UINT16.")
+                val format = when (flag and 0x10) {
+                    0x10 -> {
+                        Log.i(TAG, "Heart rate format UINT16.")
                         BluetoothGattCharacteristic.FORMAT_UINT16
                     }
                     else -> {
-                        Log.d(TAG, "Heart rate format UINT8.")
+                        Log.i(TAG, "Heart rate format UINT8.")
                         BluetoothGattCharacteristic.FORMAT_UINT8
                     }
                 }
                 val heartRate = characteristic.getIntValue(format, 1)
-                Log.d(TAG, String.format("Received heart rate: %d", heartRate))
+                Log.i(TAG, String.format("Received heart rate: %d", heartRate))
                 intent.putExtra(EXTRA_DATA, (heartRate).toString())
             }
             else -> {
@@ -259,8 +261,9 @@ class BluetoothLeService : Service() {
         }
     }
 
-    @TargetApi(Build.VERSION_CODES.JELLY_BEAN_MR2)
+    @RequiresApi(Build.VERSION_CODES.JELLY_BEAN_MR2)
     fun getSupportedGattServices(): List<BluetoothGattService>? {
-        return if (mBluetoothGatt == null) null else mBluetoothGatt!!.getServices()
+        return if (mBluetoothGatt == null) null else mBluetoothGatt!!.services
+
     }
 }
