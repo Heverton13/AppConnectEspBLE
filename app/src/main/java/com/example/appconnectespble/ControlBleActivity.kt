@@ -115,6 +115,7 @@ class ControlBleActivity : AppCompatActivity() {
                 charas += gattCharacteristic
                 val currentCharaData: HashMap<String, String> = hashMapOf()
                 uuid = gattCharacteristic.uuid.toString()
+                Log.i("TANIROUID", uuid!!.toString())
                 currentCharaData[LIST_NAME] = SampleGattAttributes.lookup(uuid!!, unknownCharaString)
                 currentCharaData[LIST_UUID] = uuid!!
                 gattCharacteristicGroupData += currentCharaData
@@ -122,8 +123,16 @@ class ControlBleActivity : AppCompatActivity() {
             mGattCharacteristics.plusAssign(charas)
             gattCharacteristicData += gattCharacteristicGroupData
             preencher()
-            Log.i("Teste1000", "$mGattCharacteristics")
-            Log.i("Teste1001", "$gattCharacteristicData")
+
+            mGattCharacteristics.forEach {
+                Log.i("Teste1000", it.toString())
+            }
+            Log.i("Teste1000", "${mGattCharacteristics}")
+            Log.i("Teste1001", "${gattCharacteristicData}")
+
+            gattCharacteristicData.forEach {
+                Log.i("Teste1002", it[0]["NAME"].toString())
+            }
         }
     }
 
