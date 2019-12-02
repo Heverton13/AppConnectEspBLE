@@ -112,14 +112,13 @@ class BluetoothLeService : Service() {
     @TargetApi(Build.VERSION_CODES.JELLY_BEAN_MR2)
     private fun broadcastUpdate(action: String, characteristic: BluetoothGattCharacteristic) {
         val intent = Intent(action)
-
         // This is special handling for the Heart Rate Measurement profile. Data
         // parsing is carried out as per profile specifications.
         when (characteristic.uuid) {
             UUID_HEART_RATE_MEASUREMENT -> {
                 val flag = characteristic.properties
-                val format = when (flag and 0x10) {
-                    0x10 -> {
+                val format = when (flag and 0x01) {
+                    0x01 -> {
                         Log.i(TAG, "Heart rate format UINT16.")
                         BluetoothGattCharacteristic.FORMAT_UINT16
                     }
@@ -235,7 +234,7 @@ class BluetoothLeService : Service() {
     @TargetApi(Build.VERSION_CODES.JELLY_BEAN_MR2)
     fun readCharacteristic(characteristic: BluetoothGattCharacteristic) {
         if (mBluetoothAdapter == null || mBluetoothGatt == null) {
-            Log.w(TAG, "BluetoothAdapter not initialized")
+            Log.i(TAG, "BluetoothAdapter not initialized")
             return
         }
         mBluetoothGatt!!.readCharacteristic(characteristic)
@@ -247,23 +246,27 @@ class BluetoothLeService : Service() {
         enabled: Boolean
     ) {
         if (mBluetoothAdapter == null || mBluetoothGatt == null) {
-            Log.w(TAG, "BluetoothAdapter not initialized")
+            Log.i(TAG, "BluetoothAdapter not initialized")
             return
         }
         mBluetoothGatt!!.setCharacteristicNotification(characteristic, enabled)
         // This is specific to Heart Rate Measurement.
+        Log.i("Teste50","${characteristic.uuid}")
         if (UUID_HEART_RATE_MEASUREMENT == characteristic.uuid) {
             val descriptor = characteristic.getDescriptor(
                 UUID.fromString(SampleGattAttributes.CLIENT_CHARACTERISTIC_CONFIG)
             )
             descriptor.value = BluetoothGattDescriptor.ENABLE_NOTIFICATION_VALUE
             mBluetoothGatt!!.writeDescriptor(descriptor)
+            Log.i("setTeste","${descriptor.value}")
         }
     }
 
-    @RequiresApi(Build.VERSION_CODES.JELLY_BEAN_MR2)
-    fun getSupportedGattServices(): List<BluetoothGattService>? {
-        return if (mBluetoothGatt == null) null else mBluetoothGatt!!.services
-
-    }
+    val supportedGattServices: List<BluetoothGattService>?
+        @TargetApi(Build.VERSION_CODES.JELLY_BEAN_MR2)
+        get() {
+            if (mBluetoothGatt == null) return null
+            Log.i("Tentei", "${mBluetoothGatt!!.device.address}")
+            return mBluetoothGatt!!.services
+        }
 }

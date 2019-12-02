@@ -12,7 +12,6 @@ import android.content.*
 import android.os.Build
 import android.widget.ExpandableListView
 import android.widget.TextView
-import android.widget.SimpleExpandableListAdapter
 import android.view.Menu
 import android.view.MenuItem
 import android.content.IntentFilter
@@ -22,6 +21,8 @@ import com.example.appconnectespble.BluetoothLeService.Companion.ACTION_DATA_AVA
 import com.example.appconnectespble.BluetoothLeService.Companion.ACTION_GATT_CONNECTED
 import com.example.appconnectespble.BluetoothLeService.Companion.ACTION_GATT_DISCONNECTED
 import com.example.appconnectespble.BluetoothLeService.Companion.ACTION_GATT_SERVICES_DISCOVERED
+import kotlin.collections.ArrayList
+import kotlin.collections.HashMap
 
 class ControlBleActivity : AppCompatActivity() {
 
@@ -33,9 +34,9 @@ class ControlBleActivity : AppCompatActivity() {
     private var mDeviceAddress: String? = null
     private val mGattServicesList: ExpandableListView? = null
     private var mBluetoothLeService: BluetoothLeService? = null
-    var mGattCharacteristics = mutableListOf<BluetoothGattCharacteristic>()
+    var mGattCharacteristics =  mutableListOf<BluetoothGattCharacteristic>()
     private var connected = false
-    private val mNotifyCharacteristic: BluetoothGattCharacteristic? = null
+    private var mNotifyCharacteristic: BluetoothGattCharacteristic? = null
     private val LIST_NAME = "NAME"
     private val LIST_UUID = "UUID"
 
@@ -72,12 +73,12 @@ class ControlBleActivity : AppCompatActivity() {
                     connected = false
                     //updateConnectionState(R.string.disconnected)
                     (context as? Activity)?.invalidateOptionsMenu()
-                    clearUI()
+                    //clearUI()
                 }
                 ACTION_GATT_SERVICES_DISCOVERED -> {
                     // Show all the supported services and characteristics on the
                     // user interface.
-                    displayGattServices(mBluetoothLeService!!.getSupportedGattServices())
+                    displayGattServices(mBluetoothLeService!!.supportedGattServices)
                 }
                 ACTION_DATA_AVAILABLE -> {
                     displayData(intent.getStringExtra(BluetoothLeService.EXTRA_DATA))
@@ -88,9 +89,8 @@ class ControlBleActivity : AppCompatActivity() {
 
     @TargetApi(Build.VERSION_CODES.JELLY_BEAN_MR2)
     private fun displayGattServices(gattServices: List<BluetoothGattService>?) {
-        Log.i("Display", "Entrou em display")
         if (gattServices == null) return
-        var uuid: String
+        var uuid: String?
         val unknownServiceString: String = resources.getString(R.string.unknown_service)
         val unknownCharaString: String = resources.getString(R.string.unknown_characteristic)
         val gattServiceData: MutableList<HashMap<String, String>> = mutableListOf()
@@ -121,6 +121,38 @@ class ControlBleActivity : AppCompatActivity() {
             }
             mGattCharacteristics.plusAssign(charas)
             gattCharacteristicData += gattCharacteristicGroupData
+            preencher()
+            Log.i("Teste1000", "$mGattCharacteristics")
+            Log.i("Teste1001", "$gattCharacteristicData")
+        }
+    }
+
+    @TargetApi(Build.VERSION_CODES.JELLY_BEAN_MR2)
+    fun preencher() {
+
+        Log.i("Preencher", "${mGattCharacteristics[0].value}")
+        if (mGattCharacteristics != null) {
+            val characteristic = mGattCharacteristics!![0]
+
+            val char: Int = characteristic.properties
+            Log.i("Hev", "${characteristic.value} + $char")
+            if (char or BluetoothGattCharacteristic.PROPERTY_READ > 0) {
+                if (mNotifyCharacteristic != null) {
+                    mBluetoothLeService!!.setCharacteristicNotification(
+                        mNotifyCharacteristic!!, false
+                    )
+                    mNotifyCharacteristic = null
+                }
+                mBluetoothLeService!!.readCharacteristic(characteristic)
+
+            }
+            if (char or BluetoothGattCharacteristic.PROPERTY_NOTIFY > 0) {
+                mNotifyCharacteristic = characteristic
+                mBluetoothLeService!!.setCharacteristicNotification(
+                    characteristic, true
+                )
+            }
+
         }
     }
 
@@ -142,8 +174,6 @@ class ControlBleActivity : AppCompatActivity() {
         //actionBar!!.setDisplayHomeAsUpEnabled(true)
         val gattServiceIntent = Intent(this, BluetoothLeService::class.java)
         bindService(gattServiceIntent, mServiceConnection, Context.BIND_AUTO_CREATE)
-        Log.i("TANIRO", mGattCharacteristics.toString())
-
 
     }
 
@@ -158,10 +188,10 @@ class ControlBleActivity : AppCompatActivity() {
         }
     }
 
-    private fun clearUI() {
-        mGattServicesList!!.setAdapter(null as SimpleExpandableListAdapter?)
-        mDataField!!.text = R.string.no_data.toString()
-    }
+    //private fun clearUI() {
+       /// mGattServicesList!!.setAdapter(null as SimpleExpandableListAdapter?)
+       // mDataField!!.text = R.string.no_data.toString()
+    //}
 
     override fun onResume() {
         Log.i("TANIRO", "OnResume")
