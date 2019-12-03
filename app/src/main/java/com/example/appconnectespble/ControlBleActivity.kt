@@ -34,7 +34,7 @@ class ControlBleActivity : AppCompatActivity() {
     private var mDeviceAddress: String? = null
     private val mGattServicesList: ExpandableListView? = null
     private var mBluetoothLeService: BluetoothLeService? = null
-    var mGattCharacteristics =  mutableListOf<BluetoothGattCharacteristic>()
+    var mGattCharacteristics =  arrayListOf<BluetoothGattCharacteristic>()
     private var connected = false
     private var mNotifyCharacteristic: BluetoothGattCharacteristic? = null
     private val LIST_NAME = "NAME"
@@ -86,6 +86,7 @@ class ControlBleActivity : AppCompatActivity() {
             }
         }
     }
+    val characteristic = null
 
     @TargetApi(Build.VERSION_CODES.JELLY_BEAN_MR2)
     private fun displayGattServices(gattServices: List<BluetoothGattService>?) {
@@ -96,7 +97,7 @@ class ControlBleActivity : AppCompatActivity() {
         val gattServiceData: MutableList<HashMap<String, String>> = mutableListOf()
         val gattCharacteristicData: MutableList<ArrayList<HashMap<String, String>>> =
             mutableListOf()
-        mGattCharacteristics = mutableListOf()
+        mGattCharacteristics = arrayListOf()
 
         // Loops through available GATT Services.
         gattServices.forEach { gattService ->
@@ -122,7 +123,6 @@ class ControlBleActivity : AppCompatActivity() {
             }
             mGattCharacteristics.plusAssign(charas)
             gattCharacteristicData += gattCharacteristicGroupData
-            preencher()
 
             mGattCharacteristics.forEach {
                 Log.i("Teste1000", it.toString())
@@ -134,14 +134,14 @@ class ControlBleActivity : AppCompatActivity() {
                 Log.i("Teste1002", it[0]["NAME"].toString())
             }
         }
+        preencher()
     }
 
     @TargetApi(Build.VERSION_CODES.JELLY_BEAN_MR2)
     fun preencher() {
-
-        Log.i("Preencher", "${mGattCharacteristics[0].value}")
+        Log.i("Cincuunn", "${mGattCharacteristics[5].value}")
         if (mGattCharacteristics != null) {
-            val characteristic = mGattCharacteristics!![0]
+            val characteristic = mGattCharacteristics[5]
 
             val char: Int = characteristic.properties
             Log.i("Hev", "${characteristic.value} + $char")
@@ -163,6 +163,7 @@ class ControlBleActivity : AppCompatActivity() {
             }
 
         }
+
     }
 
     override fun onCreate(savedInstanceState: Bundle?) {

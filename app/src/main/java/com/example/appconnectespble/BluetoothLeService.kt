@@ -251,14 +251,14 @@ class BluetoothLeService : Service() {
         }
         mBluetoothGatt!!.setCharacteristicNotification(characteristic, enabled)
         // This is specific to Heart Rate Measurement.
-        Log.i("Teste50","${characteristic.uuid}")
+        Log.i("Teste50","${characteristic.uuid} e ${characteristic.value}")
         if (UUID_HEART_RATE_MEASUREMENT == characteristic.uuid) {
             val descriptor = characteristic.getDescriptor(
                 UUID.fromString(SampleGattAttributes.CLIENT_CHARACTERISTIC_CONFIG)
             )
             descriptor.value = BluetoothGattDescriptor.ENABLE_NOTIFICATION_VALUE
             mBluetoothGatt!!.writeDescriptor(descriptor)
-            Log.i("setTeste","${descriptor.value}")
+            Log.i("setTeste","$descriptor")
         }
     }
 
