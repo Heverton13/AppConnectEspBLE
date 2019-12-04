@@ -139,9 +139,9 @@ class ControlBleActivity : AppCompatActivity() {
 
     @TargetApi(Build.VERSION_CODES.JELLY_BEAN_MR2)
     fun preencher() {
-        Log.i("Cincuunn", "${mGattCharacteristics[5].value}")
+        Log.i("Cincuunn", "${mGattCharacteristics[4].descriptors}")
         if (mGattCharacteristics != null) {
-            val characteristic = mGattCharacteristics[5]
+            val characteristic = mGattCharacteristics[4]
 
             val char: Int = characteristic.properties
             Log.i("Hev", "${characteristic.value} + $char")

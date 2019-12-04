@@ -8,8 +8,8 @@ class SampleGattAttributes {
 
     companion object {
         val attributes: HashMap<String, String> = HashMap<String, String>()
-        var HEART_RATE_MEASUREMENT = "6E400003-B5A3-F393-E0A9-E50E24DCCA9E"
-        var CLIENT_CHARACTERISTIC_CONFIG = "00002a05-0000-1000-8000-00805f9b34fb"
+        var HEART_RATE_MEASUREMENT = "6e400002-b5a3-f393-e0a9-e50e24dcca9e"
+        var CLIENT_CHARACTERISTIC_CONFIG = "6E400001-B5A3-F393-E0A9-E50E24DCCA9E"
         var BENGALARX = "6e400002-b5a3-f393-e0a9-e50e24dcca9e"
         var BENGALATX = "6e400003-b5a3-f393-e0a9-e50e24dcca9e"
         var BENGALA_UUID = "6E400001-B5A3-F393-E0A9-E50E24DCCA9E"
