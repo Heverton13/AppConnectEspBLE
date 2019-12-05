@@ -27,6 +27,4 @@
         android:text="@string/label_state" />
 
 
-
-
 </LinearLayout>
